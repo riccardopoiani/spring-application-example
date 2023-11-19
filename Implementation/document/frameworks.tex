@@ -1,0 +1,57 @@
+\section{Adopted development framework}
+Most of the choices that regards the frameworks were already briefly introduced and motivated in the
+section 2.7 of the design document (that is, other design decision). 
+However, here frameworks and other APIs are recapped:
+
+\begin{itemize}
+
+\item Spring\cite{spring} Boot has been adopted since it fits well for microservices and the set up of pattern components
+of the architecture (e.g. service registry) can be easily integrated with the usage of Spring Cloud.
+The main drawback of this choice is that spring boot does not offer much control to the developer: this "of
+course" limit the development time, but when something goes wrong, it may take time to fix the issue.
+
+\item Spring Security has been used to develop the authentication and the access control of the application.
+It is basically the de-facto standard for securing Spring-based application. 
+
+\item Spring Cloud Netflix has been used to integrate and set up the API Gateway and the service registry.
+In particular, Zuul has been set up as the API gateway integrated with ribbon and the load balancer, which is already incorporated in Zuul and Eureka as the service registry. 
+These were of a great help because it is only necessary to find the right configuration settings and then everything works as expected.
+
+\item RabbitMQ\cite{rabbitMQ} is used to set up the communications among microservices. This was chosen because of its properties: durable, 
+open-source, asynchrony and mostly for the reliability. With the help of RabbitMQ it has been achieved a communication 
+between microservices which is asynchronous, durable and reliable. Even if RabbitMQ crashes, once it restarts the queues 
+and messages are saved and, therefore, nothing is lost. Moreover, in the remote case where a microservice cannot handle 
+the message due to an unavailability of other machines such as databases, the message is re-pushed into the same queue and it 
+will be re-pulled until the operation has finished correctly. In conclusion, RabbitMQ is an essential piece to achieve the property 
+of "Eventually Consistency".
+
+\item Android: the mobile application has been developed for android, targets SDK version 27 and min SDK version 24. Here, Butter Knife has been used in order to easily bind the layout with the activities. It also enables to automatically configure listener to onClick methods.
+
+\end{itemize}
+
+Moreover, not already cited APIs has been adopted, and, therefore, are listed: 
+
+\begin{itemize}
+\item Project Lombok, that is a java library that automatically, by use of annotators, creates certain code in order to reduce the amount
+of boilerplate code that one write 
+\item Jayway JsonPath for manipulating JSON 
+\item MySQL has been adopted as a DBMS
+\item JPA for the management of persistence and object/relation mapping
+\item Google guava for the usage of immutable maps
+\item Jackson, that is an high performance JSON processor for Java has been used, since it the default library used by Spring boot 
+to convert object to json and viceversa. 
+This has been very useful in the set up of the controllers: indeed, it was possible to define POJOs as controller attributes, and the conversion between HTTP requests and Java is perfectly handled. 
+Jackson has been used also to define views in controller method: this allows to set up that in certain controller methods only certain attributes of a POJO are used. 
+For instance one can specify that when the user is accessing its own information, his password is not sent back, but, when registering, of course the password is needed.
+Using different views in different methods helps in achieving what mentioned before
+\item HATEOS is used to provide hypermedia contents to the clients. This helps the client mobile application in accessing the right methods 
+and it makes the APIs RESTful
+\item QueryDSL has been adopted to perform the custom query to access the group request data
+\item GeoNames has been used in order to find the country codes, if the Android geocoder doesn't work properly
+\item JaCoCo has been used to generate reports on the test coverage (they will be shown in the chapter related to testing)
+\item JMeter has been used to test the system as a whole: functional testing, load testing, and a simulation of a real load testing where there is some kind of think time for each user thread
+\item Room, a library about SQLite DB has been used to save data regarding health, position and emergency calls.
+\item Android bluetooth to communicate with the device collecting health data
+\item Android espresso to test mainly the correct execution of the emergency calls (e.g. if a real call is performed or not)
+\item support library package: adds support for the Action Bar user interface design pattern and it includes support for material design user interface implementations. 
+\end{itemize}

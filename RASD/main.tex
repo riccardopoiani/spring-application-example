@@ -1,0 +1,54 @@
+\documentclass[a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{makeidx}
+\usepackage{caption}
+\usepackage{tabularx}
+\usepackage{soul}
+
+% alloy packages
+\usepackage[table, xcdraw, dvipsnames]{xcolor}
+\usepackage{listings}
+\usepackage{alloy-style}
+
+\graphicspath{ {images/} }
+% !TeX spellcheck = en_US
+\makeindex
+
+\begin{document}
+\title{TrackMe: RASD \\Software Engineer 2 - 2018/2019}
+\author{
+        Riccardo Poiani, Mattia Tibaldi, Tang-Tang Zhou \\
+        Politecnico di Milano\\\\ 
+        Version 1.2
+}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\input{introduction}
+
+\newpage
+
+\input{description}
+
+\newpage
+
+\input{requirement}
+
+\newpage
+
+\input{alloy}
+
+\newpage
+
+\input{effort}
+
+\newpage
+
+\end{document}

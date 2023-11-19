@@ -1,0 +1,89 @@
+\subsection{Selected architectural styles and patterns}
+In this section, all the adopted architectural styles and patterns are explained sufficiently to define why the specific style or pattern is chosen.
+
+\subsubsection{Microservices}
+The selected architectural style, as already mentioned, is the microservices architecture. This choice is
+supported by multiple reasons. In particular, a strong motivation in the decision process is the
+conjunction of the following two facts:
+\begin{enumerate}
+\item Data4Help and Track4Run are features that provides totally different and independent functions.
+Track4Run can, without any problem, even be deployed in a different moment
+\item Scalability is one of the main QoS that the system requires. Indeed, the application is expected to
+be used by many people in the future, and therefore, designing the architecture making scaling fast is
+really important
+\end{enumerate}
+It is important to note that it could happen that one of the two functions needs to scale, while
+the other does not. 
+More specifically, this reasoning also applies to some pieces of functionality that
+are internal to both Data4Help and Track4Run. 
+For instance, it is reasonable to assume that the functions of data collection from users (positions and
+health statuses) will be much more used and will generate much more network traffic, compared to the one
+that regards the requests. 
+In order to clarify this, all the active users will periodically send data at each moment of the day,
+while third party customers that are performing requests do not keep forwarding request to the user: it is
+something that happens more rarely. 
+The same holds, for example, when considering the set up of run events from the organizer, and the fact
+that spectators will monitor in real time positions of athletes during a race. \\ 
+Therefore, the combination of these things, suggests that the scaling should be independent w.r.t. the
+function considered. \\
+Furthermore, the microservices architecture makes it easier to implement failure isolation: it is not
+desirable that a failure in Track4Run leads in a failure in also Data4Help. 
+Moreover, failing in managing the request should not prevent the data collection: as one can see the
+reason also applies to the various business capabilities that are bounded in the single Data4Help, or
+Track4Run, feature.  
+Due to this, the overall availability is improved. 
+
+\subsubsection{Eventually consistency and compensation}
+Before going to analyze all the patterns adopted for the microservices architecture, one must define the most important thing in a microservices architecture: how to achieve consistency of data. For instance, solutions for this issue are:
+\begin{itemize}
+\item Avoiding transactions across microservices: usually if a microservices architecture needs to have distributed transactions 
+it means that there are redundant data. But if this is avoided, the lack of redundant data means that everytime a microservice needs 
+to ask data from another microservice, a request is sent and if the other microservice is under high load, it will not be able to 
+process it fast.
+\item Two-Phase commit protocol (2PC): The distributed transaction of 2PC consists on two steps: Prepare phase (lock-phase) 
+and Commit-rollback phase (unlock-phase). The problem with this protocol is that it is too slow compared to the time for an 
+operation of a single microservice.
+\item Eventual consistency and compensation: it is a model different from ACID transactions, but it is a mechanism to 
+achieve consistency eventually at some point in the future. This might not achieve the same thing as 2PC but it is faster and if 
+the architecture does not need the strict properties of ACID, then it is better. Otherwise, it could be very difficult to implement it.
+\end{itemize}
+Out of the three solutions, 2PC is not an option since the messages are synchronous, which means too slow. Therefore, Eventual consistency and compensation is the one adopted by this project due to the fact that the system will scale a lot and there is no problem if consistency is achieved in the future.
+
+
+\subsubsection{Design patterns}
+Now, some patterns adopted related to the microservices architecture are exposed:
+\begin{itemize}
+\item API gateway: this is a component already introduced in the high level component diagram and it
+satisfies and deals with the following problem: how do clients of the application access to the individual
+services? The API gateway is a single entry point for all clients and it can expose different API for
+each client: this suits well for the TrackMe project. This should be implemented with an event-driven
+reactive approach in order to scale if it is necessary to manage big loads of data \\
+\item The access token pattern is very useful, since the application is composed of various services and
+an important issue is how to communicate the identity of the petitioner to the service that handles the
+request. 
+The pattern suggests to implement the API gateway in such
+a way that it authenticates requests and passes an access token that securely identifies the client
+\item Database per service pattern: all the services need to persist data in some kind of databases and
+the solution is to keep each microservice's data private to that service and accessible only via its API.
+So a database can't be accessed directly by another service.
+\item The messages and the communications between services, that were already introduced in the component diagram, are implement by means of
+asynchronous messages, since a chain of synchronous calls could lead to slowdown the entire architecture. Note, that this leads to the
+replication of some data, however, performance is considered more important than cost in this case. A way to achieve a better communications between services is to use something similar to the API gateway: a message queue architecture which requires also an additional service called message broker that is responsible for gathering, routing and distributing messages from services to other services (something similar to a mail service)
+\item 
+As shown, services need to call one another, but a microservices-based application typically runs in a virtualized 
+environment where the number of instances of a service and their locations changes dynamically. 
+The solution is to use a router that runs at a well known location. 
+The router will query a service registry, which may be built into the
+router, and forwards the requests to an available service instance.
+Of course, when a new instance is created, it has to perform registration to the service registry. \\
+It is possible to see the router as a feature of the API gateway
+\item Microservices expose REST API that will be provided only by HTTPS endpoints. This will ensure
+all the benefits of REST API, such the fact that services are stateless, with the security of an high-level encryption protocol. Other
+benefits of the REST API which are relevant to the requirements of the project are: separation of concerns between client and server, reliability and scalability.
+\item Saga pattern: this design pattern is, practically, a way to achieve the solution of Eventual consistency and compensation described before. It solves the trouble of distributed transactions without using 2PC by using a sequence of local transactions where each transaction updates data within a single service. Even though 2PC guarantees ACID properties, it is better Saga pattern that achieves only different properties, called BASE: Basic Availability Soft-state Eventually consistent.  But with Saga, there are two main different ways to implement a saga transaction:
+\begin{itemize}
+\item Events/Choreography: each service subscribes and publishes to other service's events
+\item Command/Orchestration: there is a central coordinator service which is responsible about decision making and sequencing business logic 
+\end{itemize}
+In the project it is implemented the version of event transaction. 
+\end{itemize}
